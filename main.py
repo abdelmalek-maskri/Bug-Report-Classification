@@ -1,0 +1,1 @@
+print("Indeed ALLAH is the GREATEST")
