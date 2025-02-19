@@ -85,19 +85,29 @@ from sklearn.preprocessing import LabelEncoder
 le = LabelEncoder()
 data['sentiment'] = le.fit_transform(data['sentiment'])
 
-# Convert text to TF-IDF
-tfidf = TfidfVectorizer(ngram_range=(1, 2), max_features=10000)
-X = tfidf.fit_transform(data[text_col]).toarray()
-y = data['sentiment']
+
 
 # Store metrics across 10 runs
 accuracies, precisions, recalls, f1_scores, auc_values = [], [], [], [], []
 
 for repeated_time in range(REPEAT):
     # Train-test split (Fixed for consistency)
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=repeated_time, stratify=y
+    #can add "stratify=data['sentiment']" for stratification ie If the dataset has 70% Positive and 30% Negative, both train and test sets will have the same proportion.
+    train_index, test_index = train_test_split(
+        np.arange(data.shape[0]), test_size=0.2, random_state=repeated_time
     )
+    # Convert text to TF-IDF
+    #can use 10000 for max_feures and use bigrams for better area under cover AUC
+    tfidf = TfidfVectorizer(ngram_range=(1, 1), max_features=1000)
+
+     # Fit on training data only
+    X_train = tfidf.fit_transform(data[text_col].iloc[train_index]).toarray()
+    X_test  = tfidf.transform(data[text_col].iloc[test_index]).toarray()
+    
+    # Select corresponding sentiment labels
+    y_train = data['sentiment'].iloc[train_index]
+    y_test  = data['sentiment'].iloc[test_index]
+
 
     # Train XGBoost model
     clf = XGBClassifier(
