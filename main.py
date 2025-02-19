@@ -45,6 +45,7 @@ def clean_str(string):
 ########## 3. Train on a Single Dataset Over 10 Runs ##########
 
 # Choose the dataset
+# Choose the project (options: 'pytorch', 'tensorflow', 'keras', 'incubator-mxnet', 'caffe')
 project = 'tensorflow'  # Change this to another dataset if needed
 path = f'datasets/{project}.csv'
 REPEAT = 10  # Number of runs
@@ -64,7 +65,13 @@ pd_all['Title+Body'] = pd_all.apply(
 
 # Keep only necessary columns: id, sentiment, text (merged Title+Body)
 pd_tplusb = pd_all.rename(columns={"Unnamed: 0": "id", "class": "sentiment", "Title+Body": "text"})
-data = pd_tplusb.fillna('')
+
+pd_tplusb.to_csv('Title+Body(main).csv', index=False, columns=["id", "Number", "sentiment", "text"])
+
+datafile = 'Title+Body.csv'
+data = pd.read_csv(datafile).fillna('')
+
+original_data = data.copy()
 
 # Text cleaning
 text_col = 'text'
@@ -140,3 +147,12 @@ print(f"Average Precision:     {avg_precision:.4f}")
 print(f"Average Recall:        {avg_recall:.4f}")
 print(f"Average F1 Score:      {avg_f1:.4f}")
 print(f"Average AUC:           {avg_auc:.4f}")
+
+
+import joblib
+
+# Save the model
+joblib.dump(clf, 'xgboost_bug_report_model.pkl')
+
+# Save the TF-IDF vectorizer
+joblib.dump(tfidf, 'tfidf_vectorizer.pkl')
