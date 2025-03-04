@@ -69,11 +69,12 @@ def clean_str(string):
 import os
 import subprocess
 # Choose the project (options: 'pytorch', 'tensorflow', 'keras', 'incubator-mxnet', 'caffe')
-project = 'caffe'
+project = 'tensorflow'
 path = f'datasets/{project}.csv'
 
 pd_all = pd.read_csv(path)
-pd_all = pd_all.sample(frac=1, random_state=999)  # Shuffle
+pd_all = pd_all.sample(frac=1, random_state=999)# Shuffle
+  
 
 # Merge Title and Body into a single column; if Body is NaN, use Title only
 pd_all['Title+Body'] = pd_all.apply(
@@ -100,7 +101,7 @@ datafile = 'Title+Body.csv'
 REPEAT = 10
 
 # 3) Output CSV file name
-out_csv_name = f'../{project}_NB.csv'
+out_csv_name = f'output/{project}_NB.csv'
 
 # ========== Read and clean data ==========
 data = pd.read_csv(datafile).fillna('')
