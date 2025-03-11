@@ -50,9 +50,21 @@ def apply_stemming(text):
     """Apply stemming to each word in the text."""
     return ' '.join([stemmer.stem(word) for word in text.split()])
 
+performance_terms = ['slow', 'speed', 'fast', 'memory', 'cpu', 'gpu', 'performance',
+                     'latency', 'throughput', 'bottleneck', 'optimization', 'efficient',
+                     'regression', 'benchmark', 'overhead', 'usage']
+
+def boost_performance_keywords(text):
+    """Repeat performance-related keywords to boost their importance"""
+    for term in performance_terms:
+        if term in text.lower():
+            # Repeat the term to increase its TF-IDF weight
+            text = text + " " + term + " " + term
+    return text
+
 ########## 3. Train on a Single Dataset Over 10 Runs ##########
 
-# Choose the dataset
+# Choose the project (options: 'pytorch', 'tensorflow', 'keras', 'incubator-mxnet', 'caffe')
 project = 'tensorflow'
 path = f'datasets/{project}.csv'
 REPEAT = 10
@@ -87,6 +99,7 @@ data[text_col] = data[text_col].apply(remove_emoji)
 data[text_col] = data[text_col].apply(remove_stopwords)
 data[text_col] = data[text_col].apply(clean_str)
 data[text_col] = data[text_col].apply(apply_stemming)  # Added stemming
+data[text_col] = data[text_col].apply(boost_performance_keywords)
 
 # Convert labels to numbers
 from sklearn.preprocessing import LabelEncoder
