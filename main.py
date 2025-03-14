@@ -8,7 +8,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 from xgboost import XGBClassifier
-from nltk.stem import PorterStemmer
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import wordnet
 
 # Download stopwords
 nltk.download('stopwords')
@@ -43,12 +44,14 @@ def clean_str(string):
     """Remove non-alphanumeric characters, normalize text."""
     return re.sub(r"[^A-Za-z0-9(),.!?\'\`]", " ", string).strip().lower()
 
-# Initialize stemmer
-stemmer = PorterStemmer()
+nltk.download('wordnet')
+nltk.download('omw-1.4')
 
-def apply_stemming(text):
-    """Apply stemming to each word in the text."""
-    return ' '.join([stemmer.stem(word) for word in text.split()])
+lemmatizer = WordNetLemmatizer()
+
+def apply_lemmatization(text):
+    """Lemmatize each word in the text."""
+    return ' '.join([lemmatizer.lemmatize(word, pos=wordnet.VERB) for word in text.split()])
 
 performance_terms = ['slow', 'speed', 'fast', 'memory', 'cpu', 'gpu', 'performance',
                      'latency', 'throughput', 'bottleneck', 'optimization', 'efficient',
@@ -65,7 +68,7 @@ def boost_performance_keywords(text):
 ########## 3. Train on a Single Dataset Over 10 Runs ##########
 
 # Choose the project (options: 'pytorch', 'tensorflow', 'keras', 'incubator-mxnet', 'caffe')
-project = 'tensorflow'
+project = 'caffe'
 path = f'datasets/{project}.csv'
 REPEAT = 10
 
@@ -98,7 +101,7 @@ data[text_col] = data[text_col].apply(remove_html)
 data[text_col] = data[text_col].apply(remove_emoji)
 data[text_col] = data[text_col].apply(remove_stopwords)
 data[text_col] = data[text_col].apply(clean_str)
-data[text_col] = data[text_col].apply(apply_stemming)  # Added stemming
+data[text_col] = data[text_col].apply(apply_lemmatization)  # Added stemming
 data[text_col] = data[text_col].apply(boost_performance_keywords)
 
 # Convert labels to numbers
@@ -112,9 +115,7 @@ accuracies, precisions, recalls, f1_scores, auc_values = [], [], [], [], []
 for repeated_time in range(REPEAT):
     # Train-test split
     train_index, test_index = train_test_split(
-        np.arange(data.shape[0]), test_size=0.2, random_state=repeated_time
-    )
-    
+    np.arange(data.shape[0]), test_size=0.2, random_state=repeated_time, stratify=data['sentiment'])
     # TF-IDF Vectorization
     tfidf = TfidfVectorizer(ngram_range=(1, 1), max_features=1000)
     X_train = tfidf.fit_transform(data[text_col].iloc[train_index]).toarray()
@@ -124,10 +125,12 @@ for repeated_time in range(REPEAT):
     y_test  = data['sentiment'].iloc[test_index]
 
     # Model training
+    # 1. Add class weighting to balance the classes
     clf = XGBClassifier(
         learning_rate=0.1, 
         max_depth=3, 
-        n_estimators=100, 
+        n_estimators=100,
+        scale_pos_weight=5,  # Give more weight to positive class
         eval_metric='logloss',
         random_state=42
     )
