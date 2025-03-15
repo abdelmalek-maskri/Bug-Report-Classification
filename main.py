@@ -101,7 +101,7 @@ data[text_col] = data[text_col].apply(remove_html)
 data[text_col] = data[text_col].apply(remove_emoji)
 data[text_col] = data[text_col].apply(remove_stopwords)
 data[text_col] = data[text_col].apply(clean_str)
-data[text_col] = data[text_col].apply(apply_lemmatization)  # Added stemming
+data[text_col] = data[text_col].apply(apply_lemmatization)  # Added lemmatization
 data[text_col] = data[text_col].apply(boost_performance_keywords)
 
 # Convert labels to numbers
