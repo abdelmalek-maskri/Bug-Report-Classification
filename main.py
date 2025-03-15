@@ -68,7 +68,7 @@ def boost_performance_keywords(text):
 ########## 3. Train on a Single Dataset Over 10 Runs ##########
 
 # Choose the project (options: 'pytorch', 'tensorflow', 'keras', 'incubator-mxnet', 'caffe')
-project = 'caffe'
+project = 'tensorflow'
 path = f'datasets/{project}.csv'
 REPEAT = 10
 
@@ -88,7 +88,7 @@ pd_all['Title+Body'] = pd_all.apply(
 # Keep only necessary columns
 pd_tplusb = pd_all.rename(columns={"Unnamed: 0": "id", "class": "sentiment", "Title+Body": "text"})
 
-pd_tplusb.to_csv('Title+Body(main).csv', index=False, columns=["id", "Number", "sentiment", "text"])
+pd_tplusb.to_csv('Title+Body.csv', index=False, columns=["id", "Number", "sentiment", "text"])
 
 datafile = 'Title+Body.csv'
 data = pd.read_csv(datafile).fillna('')
@@ -108,6 +108,9 @@ data[text_col] = data[text_col].apply(boost_performance_keywords)
 from sklearn.preprocessing import LabelEncoder
 le = LabelEncoder()
 data['sentiment'] = le.fit_transform(data['sentiment'])
+
+# 3) Output CSV file name
+out_csv_name = f'./{project}_NB.csv'
 
 # Store metrics across 10 runs
 accuracies, precisions, recalls, f1_scores, auc_values = [], [], [], [], []
@@ -173,7 +176,33 @@ print(f"Average Recall:        {avg_recall:.4f}")
 print(f"Average F1 Score:      {avg_f1:.4f}")
 print(f"Average AUC:           {avg_auc:.4f}")
 
-# Save artifacts
-import joblib
-joblib.dump(clf, 'xgboost_bug_report_model.pkl')
-joblib.dump(tfidf, 'tfidf_vectorizer.pkl')
+# Save final results to CSV (append mode)
+try:
+    # Attempt to check if the file already has a header
+    existing_data = pd.read_csv(out_csv_name, nrows=1)
+    header_needed = False
+except:
+    header_needed = True
+
+df_log = pd.DataFrame(
+    {
+        'repeated_times': [REPEAT],
+        'Accuracy': [avg_accuracy],
+        'Precision': [avg_precision],
+        'Recall': [avg_recall],
+        'F1': [avg_f1],
+        'AUC': [avg_auc],
+        'CV_list(AUC)': [str(auc_values)]
+    }
+)
+
+df_log.to_csv(out_csv_name, mode='a', header=header_needed, index=False)
+
+print(f"\nResults have also been saved to: {out_csv_name}")
+
+
+# Save artifacts 
+#Uncomment this if you want to use the classifier later ( for example build a GUI)
+# import joblib
+# joblib.dump(clf, 'xgboost_bug_report_model.pkl')
+# joblib.dump(tfidf, 'tfidf_vectorizer.pkl')
