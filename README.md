@@ -24,7 +24,7 @@ The goal of this project is to **build an intelligent tool** that classifies bug
 ## 📊 Running the Code
 1. **Ensure dependencies are installed**:
    ```bash
-   pip install -r requirements.txt
+   pip install pandas numpy nltk scikit-learn xgboost
    ```
 2. **Run the classification tool**:
    ```bash
