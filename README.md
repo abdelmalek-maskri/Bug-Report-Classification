@@ -43,12 +43,13 @@ The goal of this project is to **build an intelligent tool** that classifies bug
 
 ## 📂 Output Files
 - **CSV files with classification results** (saved in the root directory)
+- **All raw result CSVs** are stored under the `outputs/` folder for easy access and analysis.
 - **Model artifacts (if enabled)**: Uncomment the following in `main.py` to save models:
    ```python
    import joblib
    joblib.dump(clf, 'xgboost_bug_report_model.pkl')
    joblib.dump(tfidf, 'tfidf_vectorizer.pkl')
-   ```
+
 
 ## 📖 Documentation
 - **[Requirements](requirements.pdf)**: Dependencies and setup instructions.
