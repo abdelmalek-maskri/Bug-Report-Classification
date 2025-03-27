@@ -18,11 +18,11 @@ from nltk.corpus import stopwords
 ########## 2. Define Text Preprocessing Methods ##########
 
 def remove_html(text):
-    """Remove HTML tags using regex."""
+    #Remove HTML tags using regex
     return re.sub(r'<.*?>', '', text)
 
 def remove_emoji(text):
-    """Remove emojis using regex."""
+    #Remove emojis using regex
     emoji_pattern = re.compile("["
                                u"\U0001F600-\U0001F64F"  
                                u"\U0001F300-\U0001F5FF"  
@@ -37,11 +37,11 @@ NLTK_stop_words_list = stopwords.words('english')
 final_stop_words_list = NLTK_stop_words_list + ['...']
 
 def remove_stopwords(text):
-    """Remove stopwords from text."""
+    #Remove stopwords from text
     return " ".join([word for word in text.split() if word not in final_stop_words_list])
 
 def clean_str(string):
-    """Remove non-alphanumeric characters, normalize text."""
+    #Remove non-alphanumeric characters, normalize text
     return re.sub(r"[^A-Za-z0-9(),.!?\'\`]", " ", string).strip().lower()
 
 nltk.download('wordnet')
@@ -50,7 +50,7 @@ nltk.download('omw-1.4')
 lemmatizer = WordNetLemmatizer()
 
 def apply_lemmatization(text):
-    """Lemmatize each word in the text."""
+    #Lemmatize each word in the text
     return ' '.join([lemmatizer.lemmatize(word, pos=wordnet.VERB) for word in text.split()])
 
 performance_terms = ['slow', 'speed', 'fast', 'memory', 'cpu', 'gpu', 'performance',
@@ -58,7 +58,7 @@ performance_terms = ['slow', 'speed', 'fast', 'memory', 'cpu', 'gpu', 'performan
                      'regression', 'benchmark', 'overhead', 'usage']
 
 def boost_performance_keywords(text):
-    """Repeat performance-related keywords to boost their importance"""
+    #Repeat performance-related keywords to boost their importance
     for term in performance_terms:
         if term in text.lower():
             # Repeat the term to increase its TF-IDF weight
