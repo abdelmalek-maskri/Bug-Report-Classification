@@ -1,8 +1,5 @@
 # Bug Report Classification using XGBoost & TF-IDF
 
-This repository contains my **Tool Building Project** for the **Intelligent Software Engineering (ISE) coursework**.  
-I have chosen **Option 1: Tool Building Project**, and the problem I am addressing is **Bug Report Classification (Lab 1)**.
-
 ## 📌 Project Overview
 The goal of this project is to **build an intelligent tool** that classifies bug reports as either:
 - **Performance bug-related** (e.g., accuracy/inference speed issues).
