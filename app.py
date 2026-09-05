@@ -60,7 +60,7 @@ def preprocess_text(text):
     return text
 
 # Streamlit UI
-st.title("🛠 Bug Report Classifier")
+st.title("Bug Report Classifier")
 st.write("Upload a bug report or type text to classify whether it's performance-related.")
 
 # User Input Options
