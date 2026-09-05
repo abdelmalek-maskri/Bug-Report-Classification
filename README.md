@@ -54,5 +54,5 @@ The goal of this project is to **build an intelligent tool** that classifies bug
 - **[Replication Guide](replication.pdf)**: Steps to reproduce the results.
 
 ---
-This project enhances bug report classification using **XGBoost & TF-IDF**, improving accuracy over Naive Bayes. 🚀
+This project enhances bug report classification using **XGBoost & TF-IDF**, improving accuracy over Naive Bayes.
 
