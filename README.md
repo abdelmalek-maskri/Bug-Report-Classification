@@ -49,9 +49,9 @@ The goal of this project is to **build an intelligent tool** that classifies bug
 
 
 ## Documentation
-- **[Requirements](requirements.pdf)**: Dependencies and setup instructions.
-- **[Manual](manual.pdf)**: Guide on running and modifying the tool.
-- **[Replication Guide](replication.pdf)**: Steps to reproduce the results.
+- **[Requirements](requirements.pdf)**: Dependencies and setup instructions
+- **[Manual](manual.pdf)**: Guide on running and modifying the tool
+- **[Replication Guide](replication.pdf)**: Steps to reproduce the results
 
 ---
 This project enhances bug report classification using **XGBoost & TF-IDF**, improving accuracy over Naive Bayes.
