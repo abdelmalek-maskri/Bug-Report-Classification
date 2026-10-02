@@ -1,3 +1,7 @@
 /venv
 Title+Body.csv
 /*_NB.csv
+/*_Word2Vec.csv
+/*_Glove.csv
+/*_BERT.csv
+/*_SBERT_raw.csv
