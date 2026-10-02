@@ -3,12 +3,12 @@ import numpy as np
 import re
 import os
 import nltk
-import gensim.downloader
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 from xgboost import XGBClassifier
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import wordnet
+from gensim.models import Word2Vec
 
 # Download stopwords
 nltk.download('stopwords')
@@ -66,12 +66,12 @@ def boost_performance_keywords(text):
 
 VECTOR_SIZE = 100
 
-def sentence_to_vec(sentence, vectors):
-    # average the vectors of every token GloVe has seen before
-    found = [vectors[word] for word in sentence.split() if word in vectors]
-    if len(found) == 0:
+def sentence_to_vec(sentence, model):
+    # average the word vectors of every in-vocabulary token
+    vectors = [model.wv[word] for word in sentence.split() if word in model.wv]
+    if len(vectors) == 0:
         return np.zeros(VECTOR_SIZE)
-    return np.mean(found, axis=0)
+    return np.mean(vectors, axis=0)
 
 #2. Train on a Single Dataset Over 10 Runs
 # Choose the project (options: 'pytorch', 'tensorflow', 'keras', 'incubator-mxnet', 'caffe')
@@ -117,18 +117,7 @@ le = LabelEncoder()
 data['sentiment'] = le.fit_transform(data['sentiment'])
 
 # 3) output CSV file name
-out_csv_name = f'./{project}_Glove.csv'
-
-# GloVe Vectorization
-# the vectors are pre-trained on Wikipedia and news text and never see this dataset,
-# so loading them once up front cannot leak the test split into training
-glove = gensim.downloader.load('glove-wiki-gigaword-100')
-X = np.array([sentence_to_vec(t, glove) for t in data[text_col]])
-y = data['sentiment'].values
-
-covered = sum(1 for t in data[text_col] for w in t.split() if w in glove)
-total = sum(len(t.split()) for t in data[text_col])
-print(f"GloVe vocabulary coverage on {project}: {covered / total:.1%} of tokens")
+out_csv_name = f'./{project}_Word2Vec.csv'
 
 # store metrics across 10 runs
 accuracies, precisions, recalls, f1_scores, auc_values = [], [], [], [], []
@@ -137,12 +126,16 @@ for repeated_time in range(REPEAT):
     # train-test split
     train_index, test_index = train_test_split(
     np.arange(data.shape[0]), test_size=0.2, random_state=repeated_time, stratify=data['sentiment'])
+    # Word2Vec Vectorization
+    # trained on the training split only, so the test rows cannot shape the embedding
+    tokenized_train = [text.split() for text in data[text_col].iloc[train_index]]
+    w2v = Word2Vec(sentences=tokenized_train, vector_size=VECTOR_SIZE, window=5,
+                   min_count=1, workers=4, sg=1, seed=42)
+    X_train = np.array([sentence_to_vec(t, w2v) for t in data[text_col].iloc[train_index]])
+    X_test  = np.array([sentence_to_vec(t, w2v) for t in data[text_col].iloc[test_index]])
 
-    X_train = X[train_index]
-    X_test  = X[test_index]
-
-    y_train = y[train_index]
-    y_test  = y[test_index]
+    y_train = data['sentiment'].iloc[train_index]
+    y_test  = data['sentiment'].iloc[test_index]
 
     # model training
     # 1. Add class weighting to balance the classes
@@ -185,7 +178,7 @@ avg_f1 = np.mean(f1_scores)
 avg_auc = np.mean(auc_values)
 
 # print results
-print(f"\n=== XGBoost + GloVe Results on {project} Dataset ===")
+print(f"\n=== XGBoost + Word2Vec Results on {project} Dataset ===")
 print(f"Number of repeats:     {REPEAT}")
 print(f"Average Accuracy:      {avg_accuracy:.4f}")
 print(f"Average Precision:     {avg_precision:.4f}")

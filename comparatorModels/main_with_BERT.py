@@ -3,12 +3,13 @@ import numpy as np
 import re
 import os
 import nltk
-import gensim.downloader
+import torch
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 from xgboost import XGBClassifier
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import wordnet
+from sentence_transformers import SentenceTransformer, models
 
 # Download stopwords
 nltk.download('stopwords')
@@ -64,14 +65,23 @@ def boost_performance_keywords(text):
             text = text + " " + term + " " + term
     return text
 
-VECTOR_SIZE = 100
+# bert-base-uncased mean-pooled is plain BERT. 'sentence-transformers/all-mpnet-base-v2'
+# swaps in a model tuned to produce sentence vectors, which is the stronger comparison.
+MODEL_NAME = 'bert-base-uncased'
 
-def sentence_to_vec(sentence, vectors):
-    # average the vectors of every token GloVe has seen before
-    found = [vectors[word] for word in sentence.split() if word in vectors]
-    if len(found) == 0:
-        return np.zeros(VECTOR_SIZE)
-    return np.mean(found, axis=0)
+# the cleaning above is built for TF-IDF. Stopword removal, lemmatization and keyword
+# repetition strip the word order and context BERT depends on, so RAW_TEXT skips them
+# and embeds the report as written.
+RAW_TEXT = False
+
+def build_encoder(name):
+    # wrap a plain HF checkpoint with mean pooling; sentence-transformer checkpoints
+    # already carry their own pooling layer
+    if name.startswith('sentence-transformers/'):
+        return SentenceTransformer(name)
+    word_embedding = models.Transformer(name, max_seq_length=512)
+    pooling = models.Pooling(word_embedding.get_word_embedding_dimension(), pooling_mode='mean')
+    return SentenceTransformer(modules=[word_embedding, pooling])
 
 #2. Train on a Single Dataset Over 10 Runs
 # Choose the project (options: 'pytorch', 'tensorflow', 'keras', 'incubator-mxnet', 'caffe')
@@ -106,10 +116,11 @@ original_data = data.copy()
 text_col = 'text'
 data[text_col] = data[text_col].apply(remove_html)
 data[text_col] = data[text_col].apply(remove_emoji)
-data[text_col] = data[text_col].apply(remove_stopwords)
-data[text_col] = data[text_col].apply(clean_str)
-data[text_col] = data[text_col].apply(apply_lemmatization)  # added lemmatization
-data[text_col] = data[text_col].apply(boost_performance_keywords)
+if not RAW_TEXT:
+    data[text_col] = data[text_col].apply(remove_stopwords)
+    data[text_col] = data[text_col].apply(clean_str)
+    data[text_col] = data[text_col].apply(apply_lemmatization)  # added lemmatization
+    data[text_col] = data[text_col].apply(boost_performance_keywords)
 
 # convert labels to numbers
 from sklearn.preprocessing import LabelEncoder
@@ -117,18 +128,17 @@ le = LabelEncoder()
 data['sentiment'] = le.fit_transform(data['sentiment'])
 
 # 3) output CSV file name
-out_csv_name = f'./{project}_Glove.csv'
+variant = 'BERT_raw' if RAW_TEXT else 'BERT'
+out_csv_name = f'./{project}_{variant}.csv'
 
-# GloVe Vectorization
-# the vectors are pre-trained on Wikipedia and news text and never see this dataset,
-# so loading them once up front cannot leak the test split into training
-glove = gensim.downloader.load('glove-wiki-gigaword-100')
-X = np.array([sentence_to_vec(t, glove) for t in data[text_col]])
+# BERT Vectorization
+# the encoder is frozen, so embedding every report once up front cannot leak the test
+# split into training: nothing is fitted here. Reports longer than 512 tokens are cut.
+device = 'mps' if torch.backends.mps.is_available() else 'cpu'
+encoder = build_encoder(MODEL_NAME)
+X = encoder.encode(data[text_col].tolist(), batch_size=32, device=device,
+                   show_progress_bar=True, convert_to_numpy=True)
 y = data['sentiment'].values
-
-covered = sum(1 for t in data[text_col] for w in t.split() if w in glove)
-total = sum(len(t.split()) for t in data[text_col])
-print(f"GloVe vocabulary coverage on {project}: {covered / total:.1%} of tokens")
 
 # store metrics across 10 runs
 accuracies, precisions, recalls, f1_scores, auc_values = [], [], [], [], []
@@ -185,7 +195,7 @@ avg_f1 = np.mean(f1_scores)
 avg_auc = np.mean(auc_values)
 
 # print results
-print(f"\n=== XGBoost + GloVe Results on {project} Dataset ===")
+print(f"\n=== XGBoost + {variant} ({MODEL_NAME}) Results on {project} Dataset ===")
 print(f"Number of repeats:     {REPEAT}")
 print(f"Average Accuracy:      {avg_accuracy:.4f}")
 print(f"Average Precision:     {avg_precision:.4f}")
