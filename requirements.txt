@@ -1,0 +1,20 @@
+# main.py and the comparatorModels scripts
+pandas==2.3.3
+numpy==2.0.2
+scikit-learn==1.6.1
+scipy==1.13.1
+xgboost==2.1.4
+nltk==3.9.2
+joblib==1.5.3
+
+# comparatorModels/main_with_Word2Vec.py and main_with_Glove.py
+gensim==4.4.0
+
+# comparatorModels/main_with_BERT.py
+torch==2.8.0
+transformers==4.57.6
+sentence-transformers==5.1.2
+
+# app.py only, not currently installed in the venv
+streamlit
+matplotlib
