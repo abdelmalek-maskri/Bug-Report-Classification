@@ -2,7 +2,7 @@
 
 ## Project Overview
 The goal of this project is to **build an intelligent tool** that classifies bug reports as either:
-- **Performance bug-related** (e.g., accuracy/inference speed issues).
+- **Performance bug-related** (e.g., accuracy/inference speed issues)
 - **Non-performance bug-related** (other issues)
 
 ### **Approach**
