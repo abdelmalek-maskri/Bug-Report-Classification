@@ -6,9 +6,9 @@ The goal of this project is to **build an intelligent tool** that classifies bug
 - **Non-performance bug-related** (other issues)
 
 ### **Approach**
-- I use **TF-IDF** to convert bug report text into numerical features.
-- A **XGBoost classifier** is trained to predict whether a bug report is performance-related or not.
-- The classifier is evaluated using **precision, recall, F1-score, and AUC**.
+- I use **TF-IDF** to convert bug report text into numerical features
+- A **XGBoost classifier** is trained to predict whether a bug report is performance-related or not
+- The classifier is evaluated using **precision, recall, F1-score, and AUC**
 
 ## Implemented Features
 ✔️ **Preprocessing of bug report text** (removal of HTML, emojis, stopwords, lemmatization)  
