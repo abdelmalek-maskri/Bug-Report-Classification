@@ -35,7 +35,7 @@ The goal of this project is to **build an intelligent tool** that classifies bug
    ```
 
 4. **Check the saved CSV file**:
-   - After running the script, results are saved in a CSV file named after the selected project.
+   - After running the script, results are saved in a CSV file named after the selected project
    - Example: If the project is `tensorflow`, the results will be saved as `tensorflow_NB.csv`
 
 ## Output Files
